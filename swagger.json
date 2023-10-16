@@ -1,0 +1,1624 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "version": "5.0.1",
+        "title": "API documentation for project DrinkMaster.",
+        "description": "Коктейль - напій, що отримується змішуванням кількох компонентів. Найчастіше коктейлі є або комбінацією спиртних напоїв, або безкорисною дитячою сумішшю. Коктейлі сильно різняться в різних регіонах світу, тому наш проект покликаний для публікації як оригінальних рецептів, так і власних інтерпретацій старих і відомих коктейлів.",
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        }
+    },
+    "consumes": ["application/json", "multipart/form-data"],
+    "produces": ["application/json"],
+    "servers": [{ "url": "https://drink-master-server.onrender.com" }],
+    "tags": [
+        {
+            "name": "Auth",
+            "description": "Authorization endpoints"
+        },
+        {
+            "name": "Users",
+            "description": "Endpoint for requesting information about the user"
+        },
+        {
+            "name": "Filters",
+            "description": "Endpoint for backend data filtering"
+        },
+        {
+            "name": "Drinks",
+            "description": "Endpoint for handling cocktails."
+        }
+    ],
+    "paths": {
+        "/auth/signup": {
+            "post": {
+            "tags": ["Auth"],
+            "summary": "Sign up new user - User registration",
+            "parameters": [],
+            "requestBody": {
+                "description": "# Description of the request parameters:\n**name** - string, user name.\n**email** - string, user email.\n**password** - string, encrypted user password. \n**birthdate** - date, user's date of birth",
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                        "$ref": "#/components/schemas/RegistrationRequest"
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "201": {
+                    "description": "Successful operation",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegistrationResponse"
+                            }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "Bad Request",
+                    "content": {}
+                },
+                "409": {
+                    "description": "Email in use",
+                    "content": {}
+                }
+            }
+            }
+        },
+        "/auth/signin": {
+            "post": {
+                "tags": ["Auth"],
+                "summary": "Sign in existing user",
+                "parameters": [],
+                "requestBody": {
+                    "description": "# Description of the request parameters:\n**email** - string, user email.\n **password** - string, encrypted user password.",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SignInDto"
+                            }
+                        }
+                    }
+                },
+            "responses": {
+                "200": {
+                    "description": "Created session for existing user",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegistrationResponse"
+                            }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "Bad request",
+                    "content": {"application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "message": {
+                                        "type": "string",
+                                        "description": "Bad request"
+                                    }
+                                }
+                            },
+                            "example": {
+                                "message": "Bad request"
+                            }
+                        }}
+                },
+                "401": {
+                    "description": "Email or password is wrong",
+                    "content": {"application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "message": {
+                                        "type": "string",
+                                        "description": "Email or password is wrong"
+                                    }
+                                }
+                            },
+                            "example": {
+                                "message": "Email or password is wrong"
+                            }
+                        }}
+                },
+                "403": {
+                    "description": "Forbidden",
+                    "content": {"application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "message": {
+                                        "type": "string",
+                                        "description": "Forbidden"
+                                    }
+                                }
+                            },
+                            "example": {
+                                "message": "Forbidden"
+                            }
+                        }}
+                },
+                "404": {
+                    "description": "Not found",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "message": {
+                                        "type": "string",
+                                        "description": "Not found"
+                                    }
+                                }
+                            },
+                            "example": {
+                                "message": "Not found"
+                            }
+                        }
+                    }
+                }
+            }
+            }
+        },
+        "/auth/signout": {
+            "post": {
+                "tags": ["Auth"],
+                "summary": "Signs out user",
+                "parameters": [],
+                "description": "**Ендпоінт логауту** - це механізм виходу з системи, який припиняє дію сесії користувача та знищує токен доступу, що був виданий при попередній аутентифікації.\n**Опис:** Коли користувач натискає кнопку вийти з системи, він робить запит на URL/auth/signout з валідним токеном у заголовку Authorization. Сервер перевіряє валідність токена, якщо токен є дійсним, то сесія користувача закривається, токен видаляється і користувач повертається на сторінку входу в систему. Якщо токен не є валідним, то сервер повертає статус 401 і повідомляє про невалідність токена.",
+                "security": [{ "Bearer": [] }],
+                "responses": {
+                "204": {
+                    "description": "User signed out"
+                },
+                "401": {
+                    "description": "Not authorized",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "message": {
+                                        "type": "string",
+                                        "description": "Description of the error."
+                                    }
+                                }
+                            },
+                            "example": {
+                                "message": "Not authorized."
+                            }
+                        }
+                    }
+                }
+            }
+            }
+        },
+        "/users/current": {
+            "get": {
+                "tags": ["Users"],
+                "summary": "Information about the user",
+                "parameters": [],
+                "description": "Information about the user",
+                "security": [{ "Bearer": [] }],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CurrentResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Description of the error."
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Not authorized."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/update": {
+            "patch": {
+                "tags": ["Users"],
+                "summary": "Updating user information",
+                "consumes": ["multipart/form-data", "application/json"],
+                "parameters": [],
+                "description": "Updating user information",
+                "security": [{ "Bearer": [] }],
+                "requestBody": {
+                    "description": "# Description of the request parameters:\n**name** - string, user name.",
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "in": "formData",
+                                "type": "object",
+                                "properties": {
+                                    "image": {
+                                        "type": "file",
+                                        "format": "binary"
+                                    }  
+                                }
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateUserRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UpdateUserResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Description of the error."
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Not authorized."
+                                }
+                            }
+                        }
+                    } 
+                }
+            }
+        },
+        "/users/subscribe": {
+            "post": {
+                "tags": ["Users"],
+                "summary": "Subscription to information mailing",
+                "parameters": [],
+                "description": "",
+                "security": [{ "Bearer": [] }],
+                "requestBody": {
+                    "description": "# Description of the request parameters:\n**email** - string, user email.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SubscribeRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Subscribtion successful. Letters about subscribtion was sent to your email ..."
+                                        }  
+                                    }
+                                },
+                                "example": {
+                                    "message": "Subscribtion successful. Letters about subscribtion was sent to your email ..."
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Description of the error."
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Not authorized."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        "/filters/categories": {
+            "get": {
+                "tags": ["Filters"],
+                "summary": "Getting a list of cocktail categories",
+                "parameters": [],
+                "description": "",
+                "security": [{ "Bearer": [] }],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "example": [
+                                    "Beer",
+                                    "Cocktail",
+                                    "Cocoa",
+                                    "..."
+                                ]
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Description of the error."
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Not authorized."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/filters/ingredients": {
+            "get": {
+                "tags": ["Filters"],
+                "summary": "Getting the ingredients list",
+                "parameters": [],
+                "description": "",
+                "security": [{ "Bearer": [] }],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponsIngredients"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Description of the error."
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Not authorized."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/filters/glasses": {
+            "get": {
+                "tags": ["Filters"],
+                "summary": "Obtaining a list of the glass to be served",
+                "parameters": [],
+                "description": "",
+                "security": [{ "Bearer": [] }],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "example": [
+                                    "Balloon Glass",
+                                    "Beer Glass",
+                                    "Beer mug",
+                                    "..."
+                                ]
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Description of the error."
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Not authorized."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/drinks/mainpage": {
+            "get": {
+                "tags": ["Drinks"],
+                "summary": "Getting cocktails for the main page",
+                "parameters": [],
+                "description": "",
+                "security": [{ "Bearer": [] }],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponsDrinksMainpage"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Description of the error."
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Not authorized."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/drinks/popular": {
+            "get": {
+                "tags": ["Drinks"],
+                "summary": "Getting popular cocktails",
+                "parameters": [],
+                "description": "",
+                "security": [{ "Bearer": [] }],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponsDrinksPopular"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Description of the error."
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Not authorized."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/drinks/search": {
+            "get": {
+                "tags": ["Drinks"],
+                "summary": "Getting cocktails by category + ingredient + keyword",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "ingredient",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "keyword",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "number"
+                        }
+                    }
+                ],
+                "description": "",
+                "security": [{ "Bearer": [] }],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponsDrinksSearch"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Description of the error."
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Not authorized."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/drinks/{id}": {
+            "get": {
+                "tags": ["Drinks"],
+                "summary": "Get one cocktail per ID",
+                "parameters": [{
+                    "name": "id",
+                    "required": "true",
+                    "in": "path",
+                    "schema": {
+                        "type": "string"
+                    }
+                }],
+                "description": "",
+                "security": [{ "Bearer": [] }],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponsDrinkId"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Description of the error."
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Not authorized."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/drinks/own/add": {
+            "post": {
+                "tags": ["Drinks"],
+                "summary": "Adding your own cocktail",
+                "consumes": ["application/json", "multipart/form-data"],
+                "parameters": [],
+                "requestBody": {
+                    "description": "",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                            "$ref": "#/components/schemas/AddDrinkRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "in": "formData",
+                                "type": "object",
+                                "properties": {
+                                    "image": {
+                                        "type": "file",
+                                        "format": "binary"
+                                    }  
+                                }
+                            }
+                        }
+                    }
+                },
+                "description": "",
+                "security": [{ "Bearer": [] }],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AddDrinkRespons"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Description of the error."
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Not authorized."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/drinks/own/remove/": {
+            "delete": {
+                "tags": ["Drinks"],
+                "summary": "Deleting your own cocktail",
+                "parameters": [],
+                "requestBody": {
+                    "description": "",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": ["_id"],
+                                "properties": {
+                                    "_id": {
+                                        "type": "string",
+                                        "description": "Drink id",
+                                        "example": "639b6de9ff77d221f190c51e"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "description": "",
+                "security": [{ "Bearer": [] }],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "massage": {
+                                            "type": "string",
+                                            "description": "Drink deleted",
+                                            "example": "Drink deleted"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Description of the error."
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Not authorized."
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Not found"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Not found"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/drinks/own": {
+            "get": {
+                "tags": ["Drinks"],
+                "summary": "Getting your own cocktails",
+                "parameters": [],
+                "description": "",
+                "security": [{ "Bearer": [] }],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponsDrinksOwn"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Description of the error."
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Not authorized."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/drinks/favorite/add": {
+            "post": {
+                "tags": ["Drinks"],
+                "summary": "Adding a cocktail to favorites",
+                "parameters": [],
+                "requestBody": {
+                    "description": "",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": ["_id"],
+                                "properties": {
+                                    "_id": {
+                                        "type": "string",
+                                        "description": "Drink id",
+                                        "example": "639b6de9ff77d221f190c51e"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "description": "",
+                "security": [{ "Bearer": [] }],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponsDrinkId"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Description of the error."
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Not authorized."
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Not found"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Not found"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/drinks/favorite/remove": {
+            "delete": {
+                "tags": ["Drinks"],
+                "summary": "Removing a cocktail from favorites",
+                "parameters": [],
+                "requestBody": {
+                    "description": "",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": ["_id"],
+                                "properties": {
+                                    "_id": {
+                                        "type": "string",
+                                        "description": "Drink id",
+                                        "example": "639b6de9ff77d221f190c51e"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "description": "",
+                "security": [{ "Bearer": [] }],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponsDrinkId"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Description of the error."
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Not authorized."
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Not found"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Not found"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/drinks/favorite": {
+            "get": {
+                "tags": ["Drinks"],
+                "summary": "Getting cocktails from favorites",
+                "parameters": [],
+                "description": "",
+                "security": [{ "Bearer": [] }],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponsDrinksOwn"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "description": "Description of the error."
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "message": "Not authorized."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "RegistrationRequest": {
+                "type": "object",
+                "required": ["name", "email", "password", "birthdate"],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "User's name",
+                        "example": "Oleksandr"
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "User's email",
+                        "format": "email"
+                    },
+                    "password": {
+                        "type": "string",
+                        "description": "User's password",
+                        "example": "qwerty123"
+                    },
+                    "birthdate": {
+                        "type": "date",
+                        "description": "User's birthdate",
+                        "example": "01.01.2000"
+                    }
+                }
+            },
+            "RegistrationResponse": {
+                "type": "object",
+                "properties": {
+                    "token": {
+                        "type": "string",
+                        "description": "User's token",
+                        "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MTA5MzAyM2MwNmVmNjEyNDEyNzE3ZSIsImlhdCI6MTY5NTU4NTAyNiwiZXhwIjoxNjk1NjY3ODI2fQ.Y2uXGZHuC6poRda96zbJk1SFe0HY0BOZnOvzGaOd0-o"
+                    },
+                    "user": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "Username",
+                                "example": "Oleksandr"
+                            },
+                            "email": {
+                                "type": "string",
+                                "description": "User's email",
+                                "format": "email"
+                            },
+                            "avatarURL": {
+                                "type": "string",
+                                "description": "User's email",
+                                "example": "http://gravatar/sdfsdf"
+                            }
+                        } 
+                    }
+                },
+                "example": {
+                    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1MTA5MzAyM2MwNmVmNjEyNDEyNzE3ZSIsImlhdCI6MTY5NTU4NTAyNiwiZXhwIjoxNjk1NjY3ODI2fQ.Y2uXGZHuC6poRda96zbJk1SFe0HY0BOZnOvzGaOd0-o",
+                    "user": { 
+                        "name": "Oleksandr", 
+                        "email": "1@gmail.com",  
+                        "avatarURL": "http://gravatar/sdfsdf" 
+                    }
+                }
+            },
+
+            "SignInDto": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "description": "User's email",
+                        "format": "email"
+                    },
+                    "password": {
+                        "type": "string",
+                        "description": "User's password",
+                        "example": "qwerty123"
+                    }
+                }
+            },
+            "CurrentResponse": {
+                "type": "object",
+                "properties": {
+                    "_id": {
+                        "type": "objectId",
+                        "description": "User id",
+                        "example": "skfhku4424otjrelgd"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Username",
+                        "example": "Oleksandr"
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "User's email",
+                        "format": "email"
+                    },
+                    "avatarURL": {
+                        "type": "string",
+                        "description": "User's avatar",
+                        "example": "https://res.cloudinary.com/dxvnh0oip/image/upload/v1695434633/avatars/User_vzgcyg.png"
+                    }
+                },
+                "example": {
+                    "_id": "skfhku4424otjrelgd",
+                    "name": "Oleksandr", 
+                    "email": "1@gmail.com", 
+                    "avatarURL": "https://res.cloudinary.com/dxvnh0oip/image/upload/v1695434633/avatars/User_vzgcyg.png" 
+                }
+            },
+            "UpdateUserRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Username",
+                        "example": "Mykola"
+                    }
+                }
+            },
+            "UpdateUserResponse": {
+                "type": "object",
+                "properties": {
+                    "avatarURL": {
+                        "type": "string",
+                        "description": "User's avatar",
+                        "example": "http://gravatar/sdfsdf"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Username",
+                        "example": "Mykola"
+                    }
+                }
+            },
+            "SubscribeRequest": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "description": "User's email",
+                        "format": "email"
+                    }
+                }
+            },
+            "ResponsIngredients": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "_id": {
+                            "type": "string",
+                            "description": "Ingredient id",
+                            "example": "64aebb7f82d96cc69e0eb4a4"
+                        },
+                        "title": {
+                            "type": "string",
+                            "description": "Ingredient title",
+                            "example": "Light rum"
+                        },
+                        "ingredientThumb": {
+                            "type": "string",
+                            "description": "Ingredient image",
+                            "example": "http://res.cloudinary.com/dec1shvoo/image/upload/v1689169605/cocktails-v1/ingredient/Light20rum.png"
+                        }
+                    }
+                }
+            },
+            "ResponsDrinksMainpage": {
+                "type": "object",
+                    "properties": {
+                        "category - Ordinary Drink": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "_id": {
+                                        "type": "string",
+                                        "description": "Drink id",
+                                        "example": "639b6de9ff77d221f190c63b"
+                                    },
+                                    "drink": {
+                                        "type": "string",
+                                        "description": "Drink name",
+                                        "example": "Frozen Daiquiri"
+                                    },
+                                    "drinkThumb": {
+                                        "type": "string",
+                                        "description": "Drink image",
+                                        "example": "https://res.cloudinary.com/dxvnh0oip/image/upload/v1695378270/drinks/Frozen_Daiquiri_yhgtsf.jpg"
+                                    }
+                                }
+                            }
+                        }
+                    }
+            },
+            "ResponsDrinksPopular": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "drink": {
+                            "type": "string",
+                            "description": "Drink name",
+                            "example": "Melya"
+                        },
+                        "drinkThumb": {
+                            "type": "string",
+                            "description": "Drink image",
+                            "example": "https://res.cloudinary.com/dxvnh0oip/image/upload/v1695378377/drinks/Melya_xzcq52.jpg"
+                        }
+                    }
+                }
+            },
+            "ResponsDrinksSearch": {
+                "type": "object",
+                "properties": {
+                    "drinks": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "_id": {
+                                    "type": "string",
+                                    "description": "Drink id",
+                                    "example": "639b6de9ff77d221f190c51e"
+                                },
+                                "drink": {
+                                    "type": "string",
+                                    "description": "Drink name",
+                                    "example": "Affair"
+                                },
+                                "category": {
+                                    "type": "string",
+                                    "description": "Drink category",
+                                    "example": "Ordinary Drink"
+                                },
+                                "description": {
+                                    "type": "string",
+                                    "description": "Drink description",
+                                    "example": "Affair is a seductive and sophisticated cocktail that combines a mix of spirits and fruit juices. It is made with vodka, peach schnapps, cranberry juice, and orange juice. The combination of flavors creates a balanced and tantalizing drink that is sure to impress. It is best enjoyed in the company of someone special."
+                                },
+                                "instructions": {
+                                    "type": "string",
+                                    "description": "Drink instructions",
+                                    "example": "Pour schnapps, orange juice, and cranberry juice over ice in a highball glass. Top with club soda and serve."
+                                },
+                                "drinkThumb": {
+                                    "type": "string",
+                                    "description": "Drink image",
+                                    "example": "https://res.cloudinary.com/dxvnh0oip/image/upload/v1695378176/drinks/Affair_tobgfd.jpg"
+                                },
+                                "ingredients": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "title": {
+                                                "type": "string",
+                                                "description": "Ingredients title",
+                                                "example": "Strawberry schnapps"
+                                            }
+                                        }
+                                    }
+                                    
+                                },
+                                "shortDescription": {
+                                    "type": "string",
+                                    "description": "Drink short description",
+                                    "example": "A seductive and sophisticated cocktail with a mix of spirits and fruit juices."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "ResponsDrinkId": {
+                "type": "object",
+                "properties": {
+                    "_id": {
+                        "type": "string",
+                        "description": "Drink id",
+                        "example": "639b6de9ff77d221f190c51e"
+                    },
+                    "drink": {
+                        "type": "string",
+                        "description": "Drink name",
+                        "example": "Affair"
+                    },
+                    "category": {
+                        "type": "string",
+                        "description": "Drink category",
+                        "example": "Ordinary Drink"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Drink description",
+                        "example": "Affair is a seductive and sophisticated cocktail that combines a mix of spirits and fruit juices. It is made with vodka, peach schnapps, cranberry juice, and orange juice. The combination of flavors creates a balanced and tantalizing drink that is sure to impress. It is best enjoyed in the company of someone special."
+                    },
+                    "instructions": {
+                        "type": "string",
+                        "description": "Drink instructions",
+                        "example": "Pour schnapps, orange juice, and cranberry juice over ice in a highball glass. Top with club soda and serve."
+                    },
+                    "drinkThumb": {
+                        "type": "string",
+                        "description": "Drink image",
+                        "example": "https://res.cloudinary.com/dxvnh0oip/image/upload/v1695378176/drinks/Affair_tobgfd.jpg"
+                    },
+                    "ingredients": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "title": {
+                                    "type": "string",
+                                    "description": "Ingredients title",
+                                    "example": "Strawberry schnapps"
+                                },
+                                "measure": {
+                                    "type": "string",
+                                    "description": "Measure",
+                                    "example": "2 oz"
+                                },
+                                "ingredientId": {
+                                    "type": "string",
+                                    "description": "Ingredient id",
+                                    "example": "64aebb7f82d96cc69e0eb4a9"
+                                }
+                            }
+                        }
+                                    
+                    },
+                    "shortDescription": {
+                        "type": "string",
+                        "description": "Drink short description",
+                        "example": "A seductive and sophisticated cocktail with a mix of spirits and fruit juices."
+                    }
+                }
+            },
+            "AddDrinkRequest": {
+                "type": "object",
+                "required": ["drink", "category", "alcoholic", "glass", "instructions", "drinkThumb", "ingredients", "shortDescription"],
+                "properties": {
+                    "drink": {
+                        "type": "string",
+                        "description": "Drink name",
+                        "example": "Affair"
+                    },
+                    "category": {
+                        "type": "string",
+                        "description": "Drink category",
+                        "example": "Ordinary Drink"
+                    },
+                    "alcoholic": {
+                        "type": "string",
+                        "description": "Alcoholic / Not Alcoholic",
+                        "example": "Alcoholic"
+                    },
+                    "glass": {
+                        "type": "string",
+                        "description": "Glass for drink",
+                        "example": "Highball glass"
+                    },
+                    "instructions": {
+                        "type": "string",
+                        "description": "Drink instructions",
+                        "example": "Pour schnapps, orange juice, and cranberry juice over ice in a highball glass. Top with club soda and serve."
+                    },
+                    "drinkThumb": {
+                        "type": "string",
+                        "description": "Drink image",
+                        "example": "https://res.cloudinary.com/dxvnh0oip/image/upload/v1695378176/drinks/Affair_tobgfd.jpg"
+                    },
+                    "ingredients": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "title": {
+                                    "type": "string",
+                                    "description": "Ingredients title",
+                                    "example": "Strawberry schnapps"
+                                },
+                                "measure": {
+                                    "type": "string",
+                                    "description": "Measure",
+                                    "example": "2 oz"
+                                }
+                            }
+                        }
+                    },
+                    "shortDescription": {
+                        "type": "string",
+                        "description": "Drink short description",
+                        "example": "A seductive and sophisticated cocktail with a mix of spirits and fruit juices."
+                    }
+                }
+            },
+            "AddDrinkRespons": {
+                "type": "object",
+                "properties": {
+                    "_id": {
+                        "type": "string",
+                        "description": "Drink id",
+                        "example": "639b6de9ff77d221f190c51e"
+                    },
+                    "drink": {
+                        "type": "string",
+                        "description": "Drink name",
+                        "example": "Affair"
+                    },
+                    "category": {
+                        "type": "string",
+                        "description": "Drink category",
+                        "example": "Ordinary Drink"
+                    },
+                    "own": {
+                        "type": "string",
+                        "description": "User id",
+                        "example": "651284d9072adb72ea8b4b98"
+                    },
+                    "instructions": {
+                        "type": "string",
+                        "description": "Drink instructions",
+                        "example": "Pour schnapps, orange juice, and cranberry juice over ice in a highball glass. Top with club soda and serve."
+                    },
+                    "ingredients": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "title": {
+                                    "type": "string",
+                                    "description": "Ingredients title",
+                                    "example": "Strawberry schnapps"
+                                },
+                                "measure": {
+                                    "type": "string",
+                                    "description": "Measure",
+                                    "example": "2 oz"
+                                },
+                                "ingredientId": {
+                                    "type": "string",
+                                    "description": "Ingredient id",
+                                    "example": "64aebb7f82d96cc69e0eb4a9"
+                                }
+                            }
+                        }
+                                    
+                    },
+                    "shortDescription": {
+                        "type": "string",
+                        "description": "Drink short description",
+                        "example": "A seductive and sophisticated cocktail with a mix of spirits and fruit juices."
+                    }
+                }
+            },
+            "ResponsDrinksOwn": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "_id": {
+                            "type": "string",
+                            "description": "Drink id",
+                            "example": "639b6de9ff77d221f190c51e"
+                        },
+                        "drink": {
+                            "type": "string",
+                            "description": "Drink name",
+                            "example": "Affair"
+                        },
+                        "category": {
+                            "type": "string",
+                            "description": "Drink category",
+                            "example": "Ordinary Drink"
+                        },
+                        "own": {
+                            "type": "string",
+                            "description": "User id",
+                            "example": "651284d9072adb72ea8b4b98"
+                        },
+                        "instructions": {
+                            "type": "string",
+                            "description": "Drink instructions",
+                            "example": "Pour schnapps, orange juice, and cranberry juice over ice in a highball glass. Top with club soda and serve."
+                        },
+                        "drinkThumb": {
+                            "type": "string",
+                            "description": "Drink image",
+                            "example": "https://res.cloudinary.com/dxvnh0oip/image/upload/v1695378176/drinks/Affair_tobgfd.jpg"
+                        },
+                        "ingredients": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "description": "Ingredients title",
+                                        "example": "Strawberry schnapps"
+                                    },
+                                    "measure": {
+                                        "type": "string",
+                                        "description": "Measure",
+                                        "example": "2 oz"
+                                    },
+                                    "ingredientId": {
+                                        "type": "string",
+                                        "description": "Ingredient id",
+                                        "example": "64aebb7f82d96cc69e0eb4a9"
+                                    }
+                                }
+                            }
+                                    
+                        },
+                        "shortDescription": {
+                            "type": "string",
+                            "description": "Drink short description",
+                            "example": "A seductive and sophisticated cocktail with a mix of spirits anfruit juices."
+                        }
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "Bearer": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}
